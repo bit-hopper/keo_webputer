@@ -1,0 +1,63 @@
+# Croquet/Multisynq Network Allowlist
+# Generated: January 27, 2026
+# For apps: CID Retriever, Media Player, Screen Share
+
+# ============================================================================
+# IPFS GATEWAYS - Content Retrieval (CID Retriever)
+# ============================================================================
+gateway.ipfs.io
+cloudflare-ipfs.com
+dweb.link
+
+# ============================================================================
+# CDNs - External Libraries
+# ============================================================================
+cdnjs.cloudflare.com      # PDF.js library
+cdn.jsdelivr.net          # SweetAlert2
+unpkg.com                 # Croquet library
+fonts.googleapis.com      # Google Fonts (Open Sans, Poppins)
+
+# ============================================================================
+# AGORA SERVICE DOMAINS - Real-time Video/Audio (Screen Share)
+# ============================================================================
+
+# Core Video SDK (Web)
+*.agora.io
+*.sd-rtn.com
+*.edge.agora.io
+*.edge.sd-rtn.com
+*.ap.sd-rtn.com
+*.statscollector.sd-rtn.com
+*.webrtc-cloud-proxy.sd-rtn.com
+
+# Signaling SDK (Web) - Specific Subdomains
+web-1.ap.sd-rtn.com
+web-2.ap.sd-rtn.com
+web-3.ap.sd-rtn.com
+web-4.ap.sd-rtn.com
+ap-web-1.agora.io
+ap-web-2.agora.io
+ap-web-3.agora.io
+ap-web-4.agora.io
+webcollector-rtm.agora.io
+logservice-rtm.agora.io
+rtm.statscollector.sd-rtn.com
+rtm.logservice.sd-rtn.com
+
+# ============================================================================
+# CROQUET/GREENLIGHT INFRASTRUCTURE
+# ============================================================================
+croquet.io                # Croquet/Greenlight endpoints (legacy, being phased out)
+*.croquet.io
+# - apiKey.js (served locally)
+# - ../src/* (served locally)
+# - ../croquet/* (served locally)
+# - Croquet session via API key authentication
+# - iframe postMessage communication (window.parent)
+
+# ============================================================================
+# PORTS REFERENCE
+# ============================================================================
+# TCP: 80, 443, 3433, 4700-5000, 5668, 5669, 6080, 6443, 8667, 9667
+# TCP: 9591, 9593, 27387 (Signaling)
+# UDP: 3478, 4700-5000, 10000-65535

@@ -1,0 +1,13 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+  <!-- Sclera (eye white) - closed eye shape mirrored to create complete almond eye -->
+  <path d="M 1.6 12 Q 12 4.5 22.4 12 Q 12 19.5 1.6 12 Z" fill="white" stroke="currentColor" stroke-width="1.5"/>
+  
+  <!-- Iris (brown circle) -->
+  <circle cx="12" cy="12" r="4" fill="#8B6F47"/>
+  
+  <!-- Pupil -->
+  <circle cx="12" cy="12" r="2.3" fill="currentColor"/>
+  
+  <!-- Sparkle highlight -->
+  <circle cx="10.5" cy="10.5" r="0.7" fill="white" opacity="0.9"/>
+</svg>

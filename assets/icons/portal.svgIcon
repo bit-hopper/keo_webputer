@@ -1,0 +1,15 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer circle -->
+  <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  
+  <!-- Spiral/swirl pattern -->
+  <path d="M 12 2 Q 18 5 19 12 Q 18 19 12 22 Q 6 19 5 12 Q 6 5 12 2" 
+        fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.8"/>
+  
+  <!-- Inner spiral -->
+  <path d="M 12 7 Q 15 9 15 12 Q 14 15 12 16 Q 10 15 10 12 Q 10 9 12 7" 
+        fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+  
+  <!-- Center point -->
+  <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.5"/>
+</svg>

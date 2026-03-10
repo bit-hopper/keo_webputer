@@ -1,0 +1,65 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+apiKey.js
+video-chat/apiKey.js
+wallet/apiKey.js
+
+# Private keys & credentials
+*.key
+*.pem
+*.p12
+*.p8
+secret*
+credentials*
+*.private
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+*.bundle.js
+*.min.js
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+Thumbs.db
+.DS_Store
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+ENV/
+
+# Cache
+.cache/
+*.cache
+.eslintcache
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp

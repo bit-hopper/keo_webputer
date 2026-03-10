@@ -1,0 +1,1 @@
+{"version":1,"contracts":[{"id":"ol1r02iquki1o","package_name":"keo","contract_name":"KEOToken","module_path":"keo::keo::KEOToken","artifacts":{"sierra":"keo_KEOToken.contract_class.json","casm":null}}]}

@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'OpenSans-Regular', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: url('../assets/bitmaps/topo-pattern_lt-gray.svg') repeat;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: inset 0 2px 2px 0 rgba(255,255,255,0.8), 1px 1px 8px 0 rgba(0,35,46,0.15);
+            padding: 32px;
+            background-image: linear-gradient(135deg, rgba(245, 235, 255, 0.5) 0%, transparent 100%);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+            padding-bottom: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .token-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .header-text h1 {
+            font-size: 24px;
+            color: #00232E;
+            margin-bottom: 4px;
+        }
+
+        .header-text p {
+            font-size: 12px;
+            color: #667eea;
+            letter-spacing: 0.5px;
+        }
+
+        .network-badge {
+            background: rgba(39, 174, 96, 0.15);
+            border: 1px solid rgba(39, 174, 96, 0.3);
+            color: #27ae60;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: fit-content;
+        }
+
+        .card {
+            background: rgba(102, 126, 234, 0.08);
+            border-radius: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            background: rgba(102, 126, 234, 0.12);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #00232E;
+            margin-bottom: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .balance-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .balance-amount {
+            font-size: 36px;
+            font-weight: 700;
+            color: #00232E;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 8px;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .eye-toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            transition: color 0.2s;
+        }
+
+        .eye-toggle-btn:hover {
+            color: #8b5bec;
+        }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+            margin-bottom: 20px;
+        }
+
+        .price-card {
+            background: white;
+            border: 1px solid rgba(102, 126, 234, 0.15);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .price-label {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .price-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+        }
+
+        .price-change {
+            font-size: 10px;
+            margin-top: 4px;
+        }
+
+        .price-change.up {
+            color: #27ae60;
+        }
+
+        .price-change.down {
+            color: #e74c3c;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .refresh-spinning {
+            animation: spin 0.6s ease-in-out;
+        }
+
+        .wallet-address-box {
+            background: white;
+            border: 2px solid #27ae60;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wallet-address-label {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .wallet-address-text {
+            font-size: 11px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: #6B8E23;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 8px rgba(107, 142, 35, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(107, 142, 35, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 10px;
+            margin: 0;
+            width: auto;
+            margin-left: 8px;
+        }
+
+        .transaction-history {
+            margin-top: 20px;
+        }
+
+        .history-item {
+            background: white;
+            border: 1px solid rgba(102, 126, 234, 0.15);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-type {
+            font-size: 12px;
+            font-weight: 600;
+            color: #00232E;
+            margin-bottom: 2px;
+        }
+
+        .history-address {
+            font-size: 10px;
+            color: #999;
+            font-family: 'Courier New', monospace;
+        }
+
+        .history-amount {
+            font-size: 13px;
+            font-weight: 600;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            margin-right: 12px;
+        }
+
+        .history-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .history-link:hover {
+            text-decoration: underline;
+        }
+
+        .log {
+            background: rgba(245, 245, 245, 0.8);
+            border: 1px solid rgba(102, 126, 234, 0.15);
+            border-radius: 8px;
+            padding: 12px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            line-height: 1.5;
+            color: #666;
+        }
+
+        .log-line {
+            margin-bottom: 2px;
+        }
+
+        .log-success { color: #27ae60; font-weight: bold; }
+        .log-error { color: #e74c3c; font-weight: bold; }
+        .log-warning { color: #f39c12; font-weight: bold; }
+        .log-info { color: #667eea; }
+
+        .btn-connect {
+            width: auto;
+            padding: 10px 28px;
+            font-size: 12px;
+        }
+
+        .btn-connect-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .btn-disconnect-small {
+            background: white;
+            color: #e74c3c;
+            border: 2px solid #e74c3c;
+            padding: 6px 12px;
+            font-size: 11px;
+            width: auto;
+            margin: 0;
+            box-shadow: none;
+        }
+
+        .btn-disconnect-small:hover:not(:disabled) {
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+            margin: 20px 0;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out, slideOut 0.3s ease-out 2.7s forwards;
+            z-index: 1000;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <div class="header-text">
+                    <h1>Wallet</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div class="card-title">Balance</div>
+                <button class="btn-disconnect-small" id="disconnectBtnHeader" onclick="disconnectWallet()" style="display: none; margin-left: auto;">Disconnect</button>
+            </div>
+            <div class="balance-section">
+                <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <button class="eye-toggle-btn" id="eyeToggleBtn" onclick="toggleBalanceVisibility()" title="Toggle balance visibility">
+                        <svg id="openEyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <!-- Open eye -->
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3" fill="#8B6F47"></circle>
+                        </svg>
+                        <svg id="closedEyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                            <!-- Closed eye with lashes -->
+                            <path d="M3 12c0 0 4 3 9 3s9-3 9-3" stroke-linecap="round"></path>
+                            <line x1="6" y1="15" x2="5" y2="19"></line>
+                            <line x1="12" y1="15" x2="12" y2="19"></line>
+                            <line x1="18" y1="15" x2="19" y2="19"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="balance-amount" id="keoBalance">--</div>
+            </div>
+            
+            <div class="btn-connect-container">
+                <button class="btn-primary btn-connect" onclick="connectWallet()" id="connectBtn">
+                    Connect Wallet
+                </button>
+            </div>
+            
+            <div id="walletInfo" style="display: none;">
+                <div class="wallet-address-label">Connected Address</div>
+                <div class="wallet-address-box">
+                    <div>
+                        <div class="wallet-address-text" id="accountAddress">Not connected</div>
+                    </div>
+                    <button class="btn-small" onclick="copyToClipboard()">Copy</button>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 12px; color: #667eea; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600;">Network</div>
+                    <div class="network-badge">✓ Starknet Sepolia</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Feed Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="card-title">Price Feed</div>
+                <button class="refresh-icon-btn" onclick="fetchPricesWithAnimation()" title="Refresh prices" style="background: #27ae60; border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; color: white;">
+                    <svg id="priceRefreshIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36M20.49 15a9 9 0 0 1-14.85 3.36"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="price-grid">
+                <div class="price-card">
+                    <img src="../assets/icons/ethereum.png" alt="ETH" style="width: 24px; height: 24px; margin-bottom: 8px;">
+                    <div class="price-label">ETH</div>
+                    <div class="price-value" id="ethPrice">$--</div>
+                    <div class="price-change" id="ethChange"></div>
+                </div>
+                <div class="price-card">
+                    <img src="../assets/icons/strk.png" alt="STRK" style="width: 24px; height: 24px; margin-bottom: 8px;">
+                    <div class="price-label">STRK</div>
+                    <div class="price-value" id="strkPrice">$--</div>
+                    <div class="price-change" id="strkChange"></div>
+                </div>
+                <div class="price-card">
+                    <img src="../assets/icons/usdc.png" alt="USDC" style="width: 24px; height: 24px; margin-bottom: 8px;">
+                    <div class="price-label">USDC</div>
+                    <div class="price-value" id="usdcPrice">$--</div>
+                    <div class="price-change" id="usdcChange"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History Card -->
+        <div class="card">
+            <div class="card-title">Transaction History</div>
+            <div id="transactionHistory" class="transaction-history">
+                <div style="text-align: center; color: #999; padding: 20px;">
+                    Connect wallet to view transactions
+                </div>
+            </div>
+            <div id="voyagerLink" style="text-align: center; display: none;">
+                <a href="#" target="_blank" class="history-link">View on Voyager Explorer →</a>
+            </div>
+        </div>
+
+        <!-- Activity Log Card -->
+        <div class="card">
+            <div class="card-title">Activity Log</div>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/starknet@latest/dist/index.umd.js"></script>
+    <script>
+        // KEO Wallet Integration
+        // Contract: 0x01024a2751a749b4586b5dc2899a8c38bff389c2b319dcfe963d5f181d2b9e62
+        // Network: Starknet Sepolia
+        
+        const CONTRACT_ADDRESS = '0x0664a769efba61a16f939fdfe19eb6aca53197a4cec9b2e5efaf46dbb9d51550';
+        const RPC_URL = 'https://starknet-sepolia-rpc.publicnode.com/';
+        const DECIMALS = 18n;
+        
+        // Minimal ABI for KEO token (ERC20 + extensions)
+        const ABI = [
+            {
+                type: 'function',
+                name: 'balance_of',
+                inputs: [{ name: 'account', type: 'core::starknet::contract_address::ContractAddress' }],
+                outputs: [{ type: 'core::integer::u256' }]
+            },
+            {
+                type: 'function',
+                name: 'transfer',
+                inputs: [
+                    { name: 'to', type: 'core::starknet::contract_address::ContractAddress' },
+                    { name: 'amount', type: 'core::integer::u256' }
+                ],
+                outputs: [{ type: 'core::bool' }]
+            },
+            {
+                type: 'function',
+                name: 'approve',
+                inputs: [
+                    { name: 'spender', type: 'core::starknet::contract_address::ContractAddress' },
+                    { name: 'amount', type: 'core::integer::u256' }
+                ],
+                outputs: [{ type: 'core::bool' }]
+            }
+        ];
+        
+        let walletState = {
+            connected: false,
+            account: null,
+            balance: '0',
+            provider: null,
+            contract: null
+        };
+
+        function addLog(msg, type = 'info') {
+            const log = document.getElementById('log');
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            const time = new Date().toLocaleTimeString();
+            line.textContent = `[${time}] ${msg}`;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function formatAmount(weiAmount) {
+            // Converts from wei (18 decimals) to readable token amount
+            if (!weiAmount) return '0';
+            
+            try {
+                let amount;
+                if (typeof weiAmount === 'object') {
+                    // Handle u256 with low/high parts
+                    const low = BigInt(weiAmount.low || 0);
+                    const high = BigInt(weiAmount.high || 0);
+                    amount = low + (high << 128n);
+                } else {
+                    amount = BigInt(weiAmount);
+                }
+                
+                const divisor = 10n ** DECIMALS;
+                const whole = amount / divisor;
+                const remainder = amount % divisor;
+                
+                if (remainder === 0n) {
+                    return whole.toString();
+                }
+                
+                const remainderStr = remainder
+                    .toString()
+                    .padStart(Number(DECIMALS), '0')
+                    .replace(/0+$/, '');
+                return `${whole}.${remainderStr}`;
+            } catch (e) {
+                addLog(`Format error: ${e.message}`, 'error');
+                return '0';
+            }
+        }
+
+        function formatAmountToU256(tokenAmount) {
+            // Converts readable token amount to wei (18 decimals)
+            try {
+                const amount = BigInt(Math.floor(tokenAmount * 10 ** 18));
+                const low = amount & ((1n << 128n) - 1n);
+                const high = amount >> 128n;
+                return { low: low.toString(), high: high.toString() };
+            } catch (e) {
+                addLog(`Format error: ${e.message}`, 'error');
+                return { low: '0', high: '0' };
+            }
+        }
+
+        async function connectWallet() {
+            try {
+                addLog('Connecting wallet...', 'info');
+                
+                // Wait for wallet to be available (with timeout)
+                let walletFound = false;
+                let attempts = 0;
+                while (!window.starknet && attempts < 10) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (!window.starknet) {
+                    addLog('No Starknet wallet detected. Install ArgentX or Braavos.', 'error');
+                    addLog('Once installed, refresh this page and try again.', 'warning');
+                    return;
+                }
+                
+                // Request account access
+                let response;
+                try {
+                    response = await window.starknet.request({
+                        type: 'wallet_requestAccounts'
+                    });
+                } catch (walletErr) {
+                    addLog(`Wallet request failed: ${walletErr.message}`, 'error');
+                    return;
+                }
+                
+                if (!response || response.length === 0) {
+                    addLog('No accounts available in wallet', 'error');
+                    return;
+                }
+                
+                walletState.account = response[0];
+                
+                // Try to create RpcProvider, fallback to wallet provider
+                try {
+                    walletState.provider = new starknet.RpcProvider({ nodeUrl: RPC_URL });
+                } catch (e) {
+                    console.warn('RpcProvider not available, using wallet provider instead:', e);
+                    // Fallback: use wallet as provider for read-only calls
+                    walletState.provider = window.starknet;
+                }
+                
+                walletState.connected = true;
+                addLog(`Connected: ${walletState.account.slice(0, 10)}...`, 'success');
+                
+                document.getElementById('accountAddress').textContent = walletState.account;
+                updateUI(true);
+                
+                // Auto-check balance
+                await checkBalance();
+                
+                // Hide balance for privacy
+                if (balanceVisible) {
+                    toggleBalanceVisibility();
+                }
+                
+                // Load transaction history
+                await fetchTransactionHistory();
+                
+                // Set up auto-refresh every 10 seconds
+                setInterval(() => {
+                    if (walletState.connected) {
+                        checkBalance();
+                        fetchTransactionHistory();
+                    }
+                }, 10000);
+                
+            } catch (err) {
+                console.error('Connect wallet error:', err);
+                addLog(`Connection failed: ${err.message}`, 'error');
+                addLog('Check browser console (F12) fordetails', 'warning');
+            }
+        }
+
+        async function refreshWithAnimation() {
+            const refreshIcon = document.getElementById('refreshIcon');
+            if (!refreshIcon.classList.contains('refresh-spinning')) {
+                refreshIcon.classList.add('refresh-spinning');
+                await checkBalance();
+                refreshIcon.classList.remove('refresh-spinning');
+            }
+        }
+
+        async function checkBalance() {
+            if (!walletState.account) {
+                addLog('Wallet notconnected', 'warning');
+                return;
+            }
+            
+            try {
+                addLog('Fetching balance...', 'info');
+                
+                const rpcPayload = {
+                    jsonrpc: '2.0',
+                    method: 'starknet_call',
+                    params: {
+                        request: {
+                            contract_address: CONTRACT_ADDRESS,
+                            entry_point_selector: '0x35a73cd311a05d46deda634c5ee045db92f811b4e74bca4437fcb5302b7af33',
+                            calldata: [walletState.account]
+                        },
+                        block_id: 'latest'
+                    },
+                    id: 1
+                };
+                
+                const response = await fetch(RPC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(rpcPayload)
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('RPC error response:', data.error);
+                    throw new Error(`RPC Error: ${data.error.message}`);
+                }
+                
+                if (!data.result) {
+                    throw new Error('No result from RPC call');
+                }
+                
+                let balanceValue = data.result[0] || '0';
+                const formatted = formatAmount(balanceValue);
+                walletState.balance = formatted;
+                
+                // Ensure .00 decimal places
+                let displayBalance = formatted;
+                if (!displayBalance.includes('.')) {
+                    displayBalance += '.00';
+                } else {
+                    const parts = displayBalance.split('.');
+                    if (parts[1].length === 1) {
+                        displayBalance += '0';
+                    }
+                }
+                
+                document.getElementById('keoBalance').textContent = displayBalance + ' KEO';
+                addLog(`Balance: ${displayBalance} KEO`, 'success');
+                
+            } catch (err) {
+                console.error('Balance check error:', err);
+                addLog(`Balance check failed: ${err.message}`, 'error');
+            }
+        }
+
+        function disconnectWallet() {
+            walletState.connected = false;
+            walletState.account = null;
+            walletState.balance = '0';
+            walletState.contract = null;
+            
+            document.getElementById('keoBalance').textContent = '--';
+            document.getElementById('accountAddress').textContent = 'Not connected';
+            
+            updateUI(false);
+            addLog('Wallet disconnected', 'info');
+        }
+
+        async function mintTokens() {
+            if (!walletState.account) {
+                addLog('Wallet notconnected', 'error');
+                return;
+            }
+            
+            try {
+                addLog('Minting 1KEO...', 'info');
+                
+                const call = {
+                    contractAddress: CONTRACT_ADDRESS,
+                    entrypoint: 'mint',
+                    calldata: [walletState.account, '1000000000000000000', '0']
+                };
+                
+                const tx = await window.starknet.account.execute(
+                    call,
+                    { maxFee: '5000000000000000' }
+                );
+                addLog(`Mint tx sent: ${tx.transaction_hash}`, 'success');
+                
+                setTimeout(() => checkBalance(), 3000);
+                
+            } catch (err) {
+                console.error('Mint error:', err);
+                addLog(`Mint failed: ${err.message}`, 'error');
+            }
+        }
+
+        function updateUI(isConnected) {
+            const walletInfo = document.getElementById('walletInfo');
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtnHeader');
+
+            if (isConnected) {
+                walletInfo.style.display = 'block';
+                connectBtn.style.display = 'none';
+                disconnectBtn.style.display = 'block';
+            } else {
+                walletInfo.style.display = 'none';
+                connectBtn.style.display = 'block';
+                disconnectBtn.style.display = 'none';
+            }
+        }
+
+        function copyToClipboard() {
+            const address = walletState.account;
+            if (!address) {
+                addLog('No address to copy', 'warning');
+                return;
+            }
+            
+            navigator.clipboard.writeText(address).then(() => {
+                addLog(`Copied address to clipboard`, 'success');
+                showToast('Copied address to clipboard');
+            }).catch(err => {
+                addLog(`Copy failed: ${err.message}`, 'error');
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        let balanceVisible = true;
+        function toggleBalanceVisibility() {
+            balanceVisible = !balanceVisible;
+            const balanceAmount = document.getElementById('keoBalance');
+            const openEyeIcon = document.getElementById('openEyeIcon');
+            const closedEyeIcon = document.getElementById('closedEyeIcon');
+            
+            if (balanceVisible) {
+                balanceAmount.style.visibility = 'visible';
+                openEyeIcon.style.display = 'block';
+                closedEyeIcon.style.display = 'none';
+            } else {
+                balanceAmount.style.visibility = 'hidden';
+                openEyeIcon.style.display = 'none';
+                closedEyeIcon.style.display = 'block';
+            }
+        }
+
+        function fetchPrices() {
+            addLog('Fetching prices...', 'info');
+            
+            // Fetch ETH price
+            fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd&include_24hr_change=true')
+                .then(r => r.json())
+                .then(data => {
+                    const eth = data.ethereum.usd;
+                    const change = data.ethereum.usd_24h_change.toFixed(2);
+                    document.getElementById('ethPrice').textContent = `$${eth}`;
+                    document.getElementById('ethChange').textContent = `${change}%`;
+                    addLog(`ETH: $${eth}`, 'success');
+                })
+                .catch(e => {
+                    console.error('ETH fetch error:', e);
+                    addLog(`ETH fetch failed: ${e.message}`, 'warning');
+                });
+            
+            // Fetch STRK price
+            fetch('https://api.coingecko.com/api/v3/simple/price?ids=starknet&vs_currencies=usd&include_24hr_change=true')
+                .then(r => r.json())
+                .then(data => {
+                    const strk = data.starknet.usd;
+                    const change = data.starknet.usd_24h_change.toFixed(2);
+                    document.getElementById('strkPrice').textContent = `$${strk}`;
+                    document.getElementById('strkChange').textContent = `${change}%`;
+                    addLog(`STRK: $${strk}`, 'success');
+                })
+                .catch(e => {
+                    console.error('STRK fetch error:', e);
+                    addLog(`STRK fetch failed: ${e.message}`, 'warning');
+                });
+            
+            // USDC price
+            fetch('https://api.coingecko.com/api/v3/simple/price?ids=usd-coin&vs_currencies=usd&include_24hr_change=true')
+                .then(r => r.json())
+                .then(data => {
+                    const usdc = data['usd-coin'].usd;
+                    const change = data['usd-coin'].usd_24h_change.toFixed(2);
+                    document.getElementById('usdcPrice').textContent = `$${usdc}`;
+                    document.getElementById('usdcChange').textContent = `${change}%`;
+                    addLog(`USDC: $${usdc}`, 'success');
+                })
+                .catch(e => {
+                    console.error('USDC fetch error:', e);
+                    addLog(`USDC fetch failed: ${e.message}`, 'warning');
+                });
+        }
+
+        async function fetchPricesWithAnimation() {
+            const priceRefreshIcon = document.getElementById('priceRefreshIcon');
+            if (priceRefreshIcon && !priceRefreshIcon.classList.contains('refresh-spinning')) {
+                priceRefreshIcon.classList.add('refresh-spinning');
+                await fetchPrices();
+                priceRefreshIcon.classList.remove('refresh-spinning');
+            }
+        }
+
+        async function fetchTransactionHistory() {
+            const historyDiv = document.getElementById('transactionHistory');
+            
+            if (!walletState.account) {
+                historyDiv.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">Connect wallet to view transactions</div>';
+                document.getElementById('voyagerLink').style.display = 'none';
+                return;
+            }
+            
+            try {
+                addLog('Fetching transactionhistory...', 'info');
+                
+                // Use Alchemy RPC to get recent blocks with transactions
+                const alchemyRpc = 'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/CXpPHHqmduNASbB2LCvVr';
+                
+                // Get latest block
+                const blockResponse = await fetch(alchemyRpc, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'starknet_blockNumber',
+                        params: [],
+                        id: 1
+                    })
+                });
+                
+                const blockData = await blockResponse.json();
+                if (blockData.error) {
+                    throw new Error(blockData.error.message);
+                }
+                
+                const latestBlock = blockData.result;
+                const transactions = [];
+                
+                // Check recent blocks (limit to 5 blocks to avoid too many requests)
+                for (let i = 0; i < 5 && transactions.length === 0; i++) {
+                    const blockNum = latestBlock - i;
+                    
+                    const blockTxResponse = await fetch(alchemyRpc, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            jsonrpc: '2.0',
+                            method: 'starknet_getBlockWithTxs',
+                            params: [blockNum],
+                            id: 1
+                        })
+                    });
+                    
+                    const blockTxData = await blockTxResponse.json();
+                    if (blockTxData.result && blockTxData.result.transactions) {
+                        const allTxs = blockTxData.result.transactions;
+                        for (let tx of allTxs) {
+                            // Match transactions by sender or any related address
+                            const isSender = tx.sender_address && tx.sender_address.toLowerCase() === walletState.account.toLowerCase();
+                            if (isSender && tx.transaction_hash) {
+                                transactions.push(tx);
+                            }
+                        }
+                    }
+                }
+                
+                // Display results
+                historyDiv.innerHTML = '';
+                
+                if (transactions.length === 0) {
+                    historyDiv.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;"> No recent transactions</div>';
+                    addLog('No transactions found in recentblocks', 'info');
+                } else {
+                    transactions.slice(0, 10).forEach(tx => {
+                        const item = document.createElement('div');
+                        item.className = 'history-item';
+                        
+                        const type = (tx.type || 'INVOKE').toUpperCase() === 'INVOKE' ? ' Invoke' : ' ' + (tx.type || 'Tx');
+                        const shortHash = tx.transaction_hash ? tx.transaction_hash.slice(0, 10) + '...' : 'Unknown';
+                        
+                        item.innerHTML = `
+                            <div class="history-info">
+                                <div class="history-type">✓ ${type}</div>
+                                <div class="history-address">${shortHash}</div>
+                            </div>
+                            <a href="https://sepolia.voyager.online/tx/${tx.transaction_hash}" target="_blank" class="history-link">View →</a>
+                        `;
+                        
+                        historyDiv.appendChild(item);
+                    });
+                    addLog(`Found ${transactions.length} transaction(s)`, 'success');
+                }
+                
+                // Show Voyager explorer link
+                const voyagerLink = document.getElementById('voyagerLink');
+                voyagerLink.style.display = 'block';
+                voyagerLink.querySelector('a').href = `https://sepolia.voyager.online/contract/${walletState.account}`;
+                
+            } catch (err) {
+                console.error('Transaction fetch error:', err);
+                historyDiv.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;"> Unable to load transactions</div>';
+                addLog(`${err.message}`, 'warning');
+                
+                // Still show Voyager link as fallback
+                const voyagerLink = document.getElementById('voyagerLink');
+                voyagerLink.style.display = 'block';
+                voyagerLink.querySelector('a').href = `https://sepolia.voyager.online/contract/${walletState.account}`;
+            }
+        }
+
+        function loadTransactionHistory() {
+            const historyDiv = document.getElementById('transactionHistory');
+            if (!walletState.account) {
+                historyDiv.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">Connect wallet to view transactions</div>';
+                document.getElementById('voyagerLink').style.display = 'none';
+                return;
+            }
+            // Load transactions asynchronously
+            fetchTransactionHistory();
+        }
+
+        window.addEventListener('load', () => {
+            addLog('KEO Walletloaded', 'success');
+            addLog('Network: StarknetSepolia', 'info');
+            addLog('Contract:0x010...', 'info');
+            
+            // Check for wallet availability (with retry)
+            setTimeout(() => {
+                if (window.starknet) {
+                    addLog('Starknet walletdetected', 'success');
+                    addLog('Click "Connect Wallet" toproceed', 'info');
+                } else {
+                    addLog('No Starknet wallet detectedyet', 'warning');
+                    addLog('Install ArgentX or Braavos, then refresh thispage', 'info');
+                }
+            }, 500);
+            
+            updateUI(false);
+            loadTransactionHistory();
+        });
+
+        // Re-check wallet availability periodically (in case extension loads slowly)
+        setInterval(() => {
+            if (window.starknet && !walletState.connected) {
+                const log = document.getElementById('log');
+                const hasWalletMsg = log.textContent.includes('wallet detected');
+                if (!hasWalletMsg) {
+                    addLog('Starknet wallet detected! Ready toconnect.', 'success');
+                }
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[sncast]
+default-network = "sepolia"
+
+[sncast.sepolia]
+url = "https://starknet-sepolia-rpc.publicnode.com/"
+block-explorer = "Voyager"
+show-explorer-links = true
+account = "keo_contract"
+
+[sncast.alchemy]
+url = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/"
+block-explorer = "Voyager"
+show-explorer-links = true
+
+[sncast.devnet]
+url = "http://127.0.0.1:5050"
+block-explorer = "VoyagerStarknet"
+show-explorer-links = true

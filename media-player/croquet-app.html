@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        #approot {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            font-family: system-ui;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="approot">
+        <div id="loading">Loading Media Player...</div>
+    </div>
+
+    <script type="module">
+        async function loadMediaPlayer() {
+            try {
+                console.log("🚀 Starting Media Player");
+
+                // Get the base path - determine if we're in an iframe or standalone
+                let basePath = "./";
+                let isInIframe = typeof window !== "undefined" && window.parent !== window;
+                if (isInIframe) {
+                    basePath = "/";
+                }
+
+                // Import Media Player library (no Croquet dependency)
+                console.log("📦 Loading Media Player library");
+                const mod = await import((isInIframe ? "/" : basePath) + "../src/media-player.js?v=" + Date.now());
+                const { mediaplayer } = mod;
+
+                if (!mediaplayer || !mediaplayer.expanders) {
+                    throw new Error("Media Player library not properly loaded");
+                }
+
+                console.log("✓ Media Player library imported");
+
+                // Create view instance - MediaPlayerView
+                const approot = document.querySelector("#approot");
+                approot.innerHTML = "";
+                
+                // Create a DIV to act as the view element
+                const viewElement = document.createElement("div");
+                approot.appendChild(viewElement);
+                
+                // Create instance and set it up
+                const viewInstance = new mediaplayer.expanders[1]();
+                viewElement.attachListeners = viewInstance.attachListeners.bind(viewElement);
+                viewInstance.init.call(viewElement);
+
+                console.log("✓ Media Player ready");
+
+            } catch (error) {
+                console.error("Error loading Media Player:", error);
+                document.querySelector("#loading").innerHTML =
+                    `<div class="error"><strong>Error:</strong> ${error.message}</div>`;
+            }
+        }
+
+        // Start the app
+        loadMediaPlayer();
+    </script>
+</body>
+</html>

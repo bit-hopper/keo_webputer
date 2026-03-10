@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Outer circle -->
+  <circle cx="12" cy="12" r="10" stroke="currentColor" fill="currentColor" opacity="0.1"/>
+  
+  <!-- Three dots arranged in a triangle -->
+  <!-- Top dot -->
+  <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
+  
+  <!-- Bottom-left dot -->
+  <circle cx="7.2" cy="15.5" r="1.5" fill="currentColor"/>
+  
+  <!-- Bottom-right dot -->
+  <circle cx="16.8" cy="15.5" r="1.5" fill="currentColor"/>
+</svg>

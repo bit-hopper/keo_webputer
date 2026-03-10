@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Viewer - PDF Support</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #b6a1d8;
+            border-bottom: 1px solid rgba(201, 119, 190, 0.4);
+            color: white;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .controls {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+        }
+
+        .controls input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            min-width: 200px;
+        }
+
+        .controls button {
+            padding: 5px 10px;
+            background: #D8BFD8;
+            color: #333;
+            border: 1px solid #8B6F47;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.2s;
+            min-width: 30px;
+        }
+
+        .controls button:hover {
+            background: #C9A9C9;
+        }
+
+        .controls button:disabled {
+            background: #E8D8E8;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .controls button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            color: white;
+            font-size: 13px;
+            min-width: 90px;
+            text-align: center;
+        }
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #ddd;
+        }
+
+        .pdf-container {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            width: 100%;
+            height: 100%;
+        }
+
+        #pdfCanvas {
+            max-width: 90%;
+            max-height: 90vh;
+            width: auto;
+            height: auto;
+            aspect-ratio: auto;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            border-radius: 2px;
+        }
+
+        .error {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .zoom-controls button {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .zoom-display {
+            color: white;
+            font-size: 13px;
+            min-width: 50px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="controls">
+            <input type="file" id="fileUpload" accept=".pdf,application/pdf" 
+                   title="Upload a PDF file">
+            <div class="zoom-controls">
+                <button id="zoomOut" title="Zoom out">−</button>
+                <span class="zoom-display"><span id="zoomLevel">100</span>%</span>
+                <button id="zoomIn" title="Zoom in">+</button>
+            </div>
+            <button id="prevBtn" disabled title="Previous page">←</button>
+            <button id="nextBtn" disabled title="Next page">→</button>
+            <span class="page-info">
+                Page <span id="pageNum">0</span> / <span id="pageCount">0</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="loading" id="loading">Loading document...</div>
+        <div class="error" id="error"></div>
+        <div class="pdf-container">
+            <canvas id="pdfCanvas"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Custom fetch handler for CORS and gateway issues
+        class PDFFetcher {
+            constructor() {
+                this.gateways = [
+                    'https://trustless-gateway.link',
+                    'https://cloudflare-ipfs.com',
+                    'https://gateway.ipfs.io',
+                    'https://dweb.link'
+                ];
+                this.cache = new Map();
+            }
+
+            async fetchWithFallback(url) {
+                // Check cache first
+                if (this.cache.has(url)) {
+                    console.log('Using cached PDF');
+                    return this.cache.get(url);
+                }
+
+                // If it's already a full URL, try it first
+                if (url.startsWith('http')) {
+                    try {
+                        const response = await fetch(url, { 
+                            method: 'GET',
+                            credentials: 'omit',
+                        });
+                        if (response.ok) {
+                            const arrayBuffer = await response.arrayBuffer();
+                            this.cache.set(url, arrayBuffer);
+                            return arrayBuffer;
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch from URL:', e.message);
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        const fetcher = new PDFFetcher();
+
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const fileUpload = document.getElementById('fileUpload');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const zoomIn = document.getElementById('zoomIn');
+        const zoomOut = document.getElementById('zoomOut');
+        const canvas = document.getElementById('pdfCanvas');
+        const ctx = canvas.getContext('2d');
+        const pageNum = document.getElementById('pageNum');
+        const pageCount = document.getElementById('pageCount');
+        const zoomLevel = document.getElementById('zoomLevel');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+
+        // CORS proxy services for cross-origin PDFs
+        const CORS_PROXIES = [
+            { prefix: 'https://cors-anywhere.herokuapp.com/', suffix: '' },
+            { prefix: 'https://cors.bridged.cc/', suffix: '' },
+            { prefix: 'https://api.codetabs.com/v1/proxy?quest=', suffix: '' },
+        ];
+
+        let pdf = null;
+        let currentPage = 1;
+        let zoom = 1;
+        const baseScale = 1.5;
+
+        // Get CID from URL parameter
+        function getCIDFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('q');
+        }
+
+        // List of IPFS gateways to try
+        const IPFS_GATEWAYS = [
+            'https://trustless-gateway.link',
+            'https://cloudflare-ipfs.com',
+            'https://gateway.ipfs.io',
+            'https://dweb.link'
+        ];
+
+        // Convert CID to gateway URLs (returns array for fallback or single URL if already a URL)
+        function cidToUrl(cid) {
+            if (cid.startsWith('http://') || cid.startsWith('https://')) {
+                return [cid]; // Return as array for consistent handling
+            }
+            return IPFS_GATEWAYS.map(gateway => `${gateway}/ipfs/${cid}`);
+        }
+
+        // Show error message
+        function showError(msg) {
+            error.textContent = msg;
+            error.classList.add('show');
+            loading.classList.remove('show');
+        }
+
+        // Clear error
+        function clearError() {
+            error.classList.remove('show');
+        }
+
+        // Load PDF with fallback gateways or from Croquet data store
+        async function loadPDF(docUrl) {
+            try {
+                clearError();
+                loading.classList.add('show');
+
+                if (!docUrl) {
+                    showError('Please enter a CID or URL');
+                    return;
+                }
+
+                let pdfData = null;
+                let lastError = null;
+
+                // Determine if this is a Croquet handle, IPFS CID, or HTTP URL
+                const urlsToTry = Array.isArray(docUrl) ? docUrl : [docUrl];
+                const inputUrl = urlsToTry[0];
+
+                // Check if it's a Croquet data handle (not HTTP and doesn't look like a CID)
+                const isCroquetHandle = inputUrl && !inputUrl.startsWith('http') && 
+                                       (inputUrl.length < 20 || !inputUrl.startsWith('Qm'));
+                
+                if (isCroquetHandle) {
+                    // Try to fetch from Croquet data store first
+                    try {
+                        console.log('Detected Croquet data handle:', inputUrl);
+                        console.log('Attempting to fetch from Croquet data store...');
+                        
+                        if (window.parent && window.parent.Croquet) {
+                            // Get the session ID from Croquet's runtime
+                            const sessionId = window.parent.Croquet.Data.sessionId || window.parent.Croquet.Session?.sessionId;
+                            if (!sessionId) {
+                                throw new Error('Cannot determine session ID');
+                            }
+                            pdfData = await window.parent.Croquet.Data.fetch(sessionId, inputUrl);
+                            console.log('✓ PDF data fetched from Croquet store:', `(${(pdfData.byteLength / 1024).toFixed(2)} KB)`);
+                        } else {
+                            console.warn('Croquet not available in parent window');
+                            showError('Cannot access Croquet data store. This app may not be running in a Croquet session.');
+                            return;
+                        }
+                    } catch (err) {
+                        console.warn('Failed to fetch from Croquet store:', err.message);
+                        showError(`Failed to fetch PDF from Croquet data store:\n\n${err.message}\n\nThe document handle may be invalid or the session may have expired.`);
+                        return;
+                    }
+                } else {
+                    // Try IPFS gateways for CIDs and HTTP URLs
+                    const gatewayUrls = Array.isArray(docUrl) ? docUrl : cidToUrl(docUrl);
+                    
+                    for (const url of gatewayUrls) {
+                        try {
+                            console.log('Attempting to fetch PDF from:', url);
+
+                            const response = await fetch(url, {
+                                method: 'GET',
+                                credentials: 'omit',
+                                signal: AbortSignal.timeout(15000)
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}`);
+                            }
+
+                            pdfData = await response.arrayBuffer();
+                            console.log('✓ PDF data fetched from:', url, `(${(pdfData.byteLength / 1024).toFixed(2)} KB)`);
+                            break; // Success, exit loop
+                        } catch (err) {
+                            lastError = err;
+                            console.warn(`Failed to fetch from ${url}:`, err.message);
+                            
+                            // If direct fetch failed, try CORS proxies for HTTP URLs
+                            if (url.startsWith('http') && !url.includes('ipfs')) {
+                                console.log('Attempting CORS proxy for:', url);
+                                for (const proxy of CORS_PROXIES) {
+                                    try {
+                                        const proxyUrl = proxy.prefix + encodeURIComponent(url) + proxy.suffix;
+                                        console.log('Trying proxy:', proxyUrl);
+                                        
+                                        const response = await fetch(proxyUrl, {
+                                            method: 'GET',
+                                            credentials: 'omit',
+                                            signal: AbortSignal.timeout(30000) // Increased timeout for large PDFs
+                                        });
+
+                                        if (!response.ok) {
+                                            throw new Error(`HTTP ${response.status}`);
+                                        }
+
+                                        pdfData = await response.arrayBuffer();
+                                        
+                                        // Check if we actually got PDF data (not HTML error page)
+                                        // PDF files start with %PDF magic bytes
+                                        const view = new Uint8Array(pdfData);
+                                        const isPDF = view[0] === 0x25 && view[1] === 0x50 && view[2] === 0x44 && view[3] === 0x46; // %PDF
+                                        
+                                        if (!isPDF) {
+                                            throw new Error('Proxy returned HTML instead of PDF (likely error page or redirect)');
+                                        }
+
+                                        console.log('✓ PDF data fetched via CORS proxy:', url, `(${(pdfData.byteLength / 1024).toFixed(2)} KB)`);
+                                        break; // Success with proxy
+                                    } catch (proxyErr) {
+                                        console.warn(`CORS proxy failed:`, proxyErr.message);
+                                        continue;
+                                    }
+                                }
+                                
+                                if (pdfData) break; // If proxy worked, exit gateway loop
+                            }
+                            
+                            continue; // Try next gateway
+                        }
+                    }
+
+                    // All gateways failed
+                    if (!pdfData) {
+                        if (lastError) {
+                            console.error('All gateways failed. Last error:', lastError.message);
+                            const errorMsg = lastError.message;
+                            let helpText = '';
+                            
+                            // Determine error type and provide specific help
+                            if (errorMsg.includes('Proxy returned HTML')) {
+                                helpText = `\n\nProxy Service Limitation:\nThe free proxy service is blocking or redirecting the request. Best solutions:\n1. Download the PDF directly and save locally\n2. Upload to IPFS and use the CID\n3. Host on a CORS-enabled server\n\nNote: Most free CORS proxies don't reliably handle binary files.`;
+                            } else if (errorMsg.includes('CORS') || errorMsg.includes('Access')) {
+                                helpText = `\n\nCORS Restriction:\nThe server doesn't allow cross-origin requests. Try:\n1. Download the PDF manually and host it locally\n2. Upload to IPFS and use the CID\n3. Contact the site admin to enable CORS`;
+                            } else if (errorMsg.includes('timeout') || errorMsg.includes('ERR_NAME_NOT_RESOLVED')) {
+                                helpText = `\n\nNetwork Error:\nUnable to reach the server or proxy. Try:\n1. Check your internet connection\n2. Use a CID from IPFS instead\n3. Try the URL again in a few moments`;
+                            } else if (lastError.message.includes('404') || lastError.message.includes('not found')) {
+                                helpText = `\n\nFile Not Found:\nThe PDF URL doesn't exist or is no longer available.\n\nTry:\n1. Verify the URL is correct\n2. Check the original source\n3. Use a different PDF URL`;
+
+                            }
+                            
+                            showError(`Failed to fetch PDF:\n\n${lastError.message}${helpText}`);
+                        } else {
+                            showError('Could not load PDF from any gateway.');
+                        }
+                        return;
+                    }
+                }
+
+                // If we got the PDF data, load it
+                if (pdfData) {
+                    try {
+                        const loadingTask = pdfjsLib.getDocument({
+                            data: pdfData,
+                            disableAutoFetch: false,
+                            disableStream: false,
+                        });
+
+                        pdf = await loadingTask.promise;
+                        currentPage = 1;
+                        zoom = 1;
+
+                        pageCount.textContent = pdf.numPages;
+                        prevBtn.disabled = true;
+                        nextBtn.disabled = pdf.numPages <= 1;
+
+                        loading.classList.remove('show');
+                        console.log('✓ PDF loaded successfully, pages:', pdf.numPages);
+                        
+                        // Render first page
+                        renderPage();
+                        return; // Success, exit function
+                    } catch (err) {
+                        console.error('PDF parsing error:', err);
+                        showError(`Error parsing PDF: ${err.message}`);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error('PDF loading error:', err);
+                showError(`Error: ${err.message}`);
+            }
+        }
+
+        // Render current page
+        async function renderPage() {
+            if (!pdf) return;
+
+            try {
+                loading.classList.add('show');
+                const page = await pdf.getPage(currentPage);
+                
+                // Calculate scale to fit container width
+                const containerWidth = canvas.parentElement.clientWidth - 40; // 40px for padding
+                const defaultViewport = page.getViewport({ scale: 1 });
+                const scale = (containerWidth / defaultViewport.width) * baseScale * zoom;
+                const viewport = page.getViewport({ scale });
+
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+
+                await page.render(renderContext).promise;
+                
+                pageNum.textContent = currentPage;
+                prevBtn.disabled = currentPage <= 1;
+                nextBtn.disabled = currentPage >= pdf.numPages;
+                zoomLevel.textContent = Math.round(zoom * 100);
+                
+                loading.classList.remove('show');
+                console.log(`✓ Rendered page ${currentPage}`);
+            } catch (err) {
+                console.error('Rendering error:', err);
+                showError(`Error rendering page: ${err.message}`);
+            }
+        }
+
+        // Event listeners
+        
+        // File upload handler
+        fileUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.includes('pdf') && !file.name.endsWith('.pdf')) {
+                showError('Please select a valid PDF file');
+                return;
+            }
+            
+            clearError();
+            loading.classList.add('show');
+            
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const pdfData = event.target.result;
+                    const loadingTask = pdfjsLib.getDocument({
+                        data: pdfData,
+                        disableAutoFetch: false,
+                        disableStream: false,
+                    });
+
+                    pdf = await loadingTask.promise;
+                    currentPage = 1;
+                    zoom = 1;
+
+                    pageCount.textContent = pdf.numPages;
+                    prevBtn.disabled = true;
+                    nextBtn.disabled = pdf.numPages <= 1;
+
+                    loading.classList.remove('show');
+                    console.log('✓ PDF loaded from file:', file.name, '- pages:', pdf.numPages);
+                    
+                    renderPage();
+                } catch (err) {
+                    console.error('PDF parsing error:', err);
+                    showError(`Error parsing PDF: ${err.message}`);
+                    loading.classList.remove('show');
+                }
+            };
+            
+            reader.onerror = () => {
+                showError('Error reading file: ' + reader.error);
+                loading.classList.remove('show');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPage();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (pdf && currentPage < pdf.numPages) {
+                currentPage++;
+                renderPage();
+            }
+        });
+
+        zoomIn.addEventListener('click', () => {
+            zoom = Math.min(zoom + 0.2, 3);
+            renderPage();
+        });
+
+        zoomOut.addEventListener('click', () => {
+            zoom = Math.max(zoom - 0.2, 0.5);
+            renderPage();
+        });
+    </script>
+</body>
+</html>

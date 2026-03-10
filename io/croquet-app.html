@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I/O  Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: url('../assets/bitmaps/topo-pattern_lt-gray.svg') repeat;
+            background-color: #f5f5f5;
+        }
+
+        #io-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #4D4D4D;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #333;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        button.active {
+            background: #ef4b3e;
+        }
+
+        #connect-btn {
+            background: #27ae60;
+        }
+
+        #connect-btn:hover {
+            background: #229954;
+        }
+
+        #disconnect-btn:not(:disabled) {
+            background: #e74c3c;
+        }
+
+        #disconnect-btn:not(:disabled):hover {
+            background: #c0392b;
+        }
+
+        #clear-btn {
+            background: #3498db;
+        }
+
+        #clear-btn:hover {
+            background: #2980b9;
+        }
+
+        .status {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .status-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+
+        .status-label {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .status-value {
+            color: #333;
+            font-family: monospace;
+        }
+
+        .status-value.connected {
+            color: #2ecc71;
+        }
+
+        .status-value.disconnected {
+            color: #e74c3c;
+        }
+
+        .console {
+            flex: 1;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .console-output {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .console-line {
+            margin: 3px 0;
+            padding: 2px 0;
+            border-left: 3px solid transparent;
+            padding-left: 8px;
+        }
+
+        .console-line.info {
+            color: #3498db;
+            border-left-color: #3498db;
+        }
+
+        .console-line.success {
+            color: #2ecc71;
+            border-left-color: #2ecc71;
+        }
+
+        .console-line.error {
+            color: #e74c3c;
+            border-left-color: #e74c3c;
+        }
+
+        .console-line.data {
+            color: #9b59b6;
+            border-left-color: #9b59b6;
+        }
+
+        .console-input {
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+
+        #input-field {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        #send-btn {
+            padding: 8px 16px;
+            background: #27ae60;
+        }
+
+        #send-btn:hover {
+            background: #229954;
+        }
+
+        .error-banner {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-banner {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="io-container">
+        <div class="header">
+            <h1>I/O  Interface</h1>
+        </div>
+
+        <div id="error-banner" class="error-banner"></div>
+        <div id="success-banner" class="success-banner"></div>
+
+        <div class="controls">
+            <button id="connect-btn" onclick="connectSerial()">Connect Port</button>
+            <button id="disconnect-btn" onclick="disconnectSerial()" disabled>Disconnect</button>
+            <button id="clear-btn" onclick="clearConsole()">Clear Console</button>
+        </div>
+
+        <div class="status">
+            <div class="status-line">
+                <span class="status-label">Connection Status:</span>
+                <span id="status-value" class="status-value disconnected">Disconnected</span>
+            </div>
+            <div class="status-line">
+                <span class="status-label">Selected Port:</span>
+                <span id="port-value" class="status-value">None</span>
+            </div>
+            <div class="status-line">
+                <span class="status-label">Baud Rate:</span>
+                <span id="baud-value" class="status-value">9600</span>
+            </div>
+        </div>
+
+        <div class="console">
+            <div class="console-output" id="console-output">
+                <div class="console-line info">Ready to connect. Select a port to begin.</div>
+            </div>
+            <div class="console-input">
+                <input type="text" id="input-field" placeholder="Enter command (e.g., 'LED ON')" />
+                <button id="send-btn" onclick="sendData()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let port = null;
+        let reader = null;
+        let isConnected = false;
+
+        const baudRate = 9600;
+
+        function updateUI() {
+            const connectBtn = document.getElementById('connect-btn');
+            const disconnectBtn = document.getElementById('disconnect-btn');
+            const statusValue = document.getElementById('status-value');
+            const portValue = document.getElementById('port-value');
+
+            connectBtn.disabled = isConnected;
+            disconnectBtn.disabled = !isConnected;
+
+            if (isConnected) {
+                statusValue.textContent = 'Connected';
+                statusValue.className = 'status-value connected';
+                portValue.textContent = port.getInfo ? `${port.getInfo().usbVendorId}:${port.getInfo().usbProductId}` : 'Unknown Device';
+            } else {
+                statusValue.textContent = 'Disconnected';
+                statusValue.className = 'status-value disconnected';
+                portValue.textContent = 'None';
+            }
+        }
+
+        async function connectSerial() {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: baudRate });
+                isConnected = true;
+                updateUI();
+                addLog('Connected to port', 'success');
+                readFromPort();
+            } catch (err) {
+                addLog(`Connection failed: ${err.message}`, 'error');
+            }
+        }
+
+        async function disconnectSerial() {
+            if (port) {
+                if (reader) {
+                    await reader.cancel();
+                    reader = null;
+                }
+                await port.close();
+                port = null;
+                isConnected = false;
+                updateUI();
+                addLog('Disconnected from port', 'info');
+            }
+        }
+
+        async function readFromPort() {
+            if (!port) return;
+
+            try {
+                const textDecoder = new TextDecoderStream();
+                const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+                reader = textDecoder.readable.getReader();
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    if (value) {
+                        const lines = value.split('\n');
+                        lines.forEach(line => {
+                            if (line.trim()) {
+                                addLog(line.trim(), 'data');
+                            }
+                        });
+                    }
+                }
+            } catch (err) {
+                addLog(`Read error: ${err.message}`, 'error');
+                isConnected = false;
+                updateUI();
+            }
+        }
+
+        async function sendData() {
+            const input = document.getElementById('input-field');
+            const data = input.value.trim();
+
+            if (!data) return;
+            if (!isConnected) {
+                addLog('Not connected', 'error');
+                return;
+            }
+
+            try {
+                const writer = port.writable.getWriter();
+                const encoder = new TextEncoder();
+                await writer.write(encoder.encode(data + '\n'));
+                writer.releaseLock();
+                addLog(`> ${data}`, 'info');
+                input.value = '';
+            } catch (err) {
+                addLog(`Send failed: ${err.message}`, 'error');
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const output = document.getElementById('console-output');
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            line.textContent = message;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('console-output').innerHTML = '';
+        }
+
+        // Enter key to send
+        document.getElementById('input-field').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendData();
+            }
+        });
+
+        // Check if Web Serial is supported
+        if (!navigator.serial) {
+            addLog('Web Serial API not supported in this browser', 'error');
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
